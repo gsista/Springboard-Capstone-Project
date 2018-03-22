@@ -1,0 +1,33 @@
+1. Homelessness in San Francisco - Predicting the increase or decrease in homelessness based on other factors like jobs/job growth, housing prices, rental prices, population etc
+○	Datasets to be used: 
+■	SF Homeless Point in Time Count Reports - http://hsh.sfgov.org/research-reports/san-francisco-homeless-point-in-time-count-reports  
+■	Employment and wages: https://www.bls.gov/regions/west/news-release/occupationalemploymentandwages_sanfrancisco.htm
+■	Home Values/Rentals Data - https://www.zillow.com/research/data/#rental-data
+○	Independent Variables:
+■	Increase/decrease in the number of jobs in the area
+■	Increase/decrease in the rents in the area
+
+2. Will the San Francisco Giants win the World Series in 2017? (Use 2016 data to predict 2017 and check the results to the real data)
+Datasets to be used:
+■	http://www.seanlahman.com/baseball-archive/statistics/
+■	http://www.retrosheet.org/
+○	Independent Variables:
+■	# of times the batter gets on base
+■	# of errors in a game
+■	# of runs scored
+■	# of strikes by the pitcher
+■	# of innings that a pitcher pitched in
+
+3. San Francisco Crime Classification - Given time and location, predicting the category of crime that occurred.
+Datasets to be used:
+■	SFPD Crime Incident Reporting System - Hosted on the SFGov website
+Data fields
+Dates - timestamp of the crime incident
+Category - category of the crime incident (only in train.csv). This is the target variable you are going to predict.
+Descript - detailed description of the crime incident (only in train.csv)
+DayOfWeek - the day of the week
+PdDistrict - name of the Police Department District
+Resolution - how the crime incident was resolved (only in train.csv)
+Address - the approximate street address of the crime incident 
+X - Longitude
+Y - Latitude

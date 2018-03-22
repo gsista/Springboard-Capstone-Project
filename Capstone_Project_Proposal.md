@@ -1,0 +1,37 @@
+Springboard Project Proposal
+================
+
+Predicting crime in the city of San Francisco
+---------------------------------------------
+
+The city of San Francisco has seen a booming tech scene, increase in housing prices, and increased wealth inequality in the last 10-ish years. With that comes the increase in crime rates across different neighborhoods in the city. The idea of this project is to predict the category of the crime that occured, given the time and location.
+
+Data Used
+---------
+
+The data to be used is the data derived from the SFPD Crime Incident Reporting system, that is published and available freely on [SF OpenData](https://datasf.org/opendata/).
+
+The **Data Fields** that will be used are:
+
+-   Dates - timestamp of the crime incident
+-   Category - category of the crime incident (only in train.csv). This is the target variable you are going to predict.
+-   Descript - detailed description of the crime incident (only in train.csv)
+-   DayOfWeek - the day of the week
+-   PdDistrict - name of the Police Department District
+-   Resolution - how the crime incident was resolved (only in train.csv)
+-   Address - the approximate street address of the crime incident
+-   X - Longitude
+-   Y - Latitude
+
+Approach to solving the problem
+-------------------------------
+
+1.  Understand the various fields in the data and what they mean.
+2.  Clean the data if necessary.
+3.  Do some exploratory data analysis and build visualizations.
+4.  Build a predictive model.
+
+Deliverables
+------------
+
+-   An R Markdown document with the code of the model, visualizations, and the steps in solving the problem.

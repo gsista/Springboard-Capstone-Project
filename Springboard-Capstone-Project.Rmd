@@ -1,0 +1,47 @@
+---
+title: "Springboard Capstone Project"
+author: Gautham Sista
+output: html_notebook
+---
+
+This notebook shows the analysis performed as part of my Springboard Capstone Project for the Introduction to Data Science course. 
+
+1. Reading in the San Francisco Crime dataset
+
+```{r}
+sf <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/sf_crime.csv")
+str(sf)
+```
+
+```{r}
+sf$DayOfWeek <- factor(sf$DayOfWeek, levels=c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+library(ggplot2)
+ggplot(sf, aes(x = DayOfWeek)) +
+  geom_bar() +
+  geom_text(stat='count',aes(label=..count..),vjust=-1)
+```
+
+```{r}
+sf$DayOfWeek <- factor(sf$DayOfWeek, levels=c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+ggplot(sf, aes(x = Category, fill = DayOfWeek)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+2. Reading in the Zipcodes Latitude and Longitude dataset
+
+```{r}
+zip <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Zipcodes_LatLong.txt", sep = "")
+str(zip)
+zip
+```
+
+3. Reading in Median House Prices by zipcode dataset
+
+```{r}
+mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Zip_MedianListingPrice_AllHomes.csv")
+str(mhp)
+mhp
+```
+
