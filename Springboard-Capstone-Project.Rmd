@@ -38,12 +38,11 @@ ggplot(sf, aes(x = Category, fill = DayOfWeek)) +
 ```
 
 
-2. Reading in the Zipcodes Latitude and Longitude dataset
+2. Reading the SF weather dataset
 
 ```{r}
-zip <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Zipcodes_LatLong.txt", sep = "")
-str(zip)
-zip
+weather <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/weather.csv")
+head(weather)
 ```
 
 3. Reading in Median House Prices by zipcode dataset
