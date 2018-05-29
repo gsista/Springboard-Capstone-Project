@@ -1,0 +1,58 @@
+---
+title: "Notebook to pull Google Maps data"
+output: html_notebook
+---
+
+```{r}
+library(RCurl)
+library(RJSONIO)
+library(plyr)
+```
+
+```{r}
+url <- function(address, return.call = "json") {
+ root <- "https://maps.google.com/maps/api/geocode/"
+ u <- paste(root, return.call, "?latlng=", address, "&key=AIzaSyDwx7AdxzKC_U7m5gQfrqZIOLOJkw469D8", sep = "")
+ return(URLencode(u))
+}
+```
+
+```{r}
+geoCode <- function(address,verbose=FALSE) {
+ if(verbose) cat(address,"\n")
+ u <- url(address)
+ print (u)
+ doc <- getURL(u)
+ x <- fromJSON(doc,simplify = FALSE)
+ print(x)
+ if(x$status=="OK") {
+ lat <- x$results[[1]]$geometry$location$lat
+ lng <- x$results[[1]]$geometry$location$lng
+ postal_code <- x$results[[1]]$address_components[[8]]$long_name
+ location_type <- x$results[[1]]$geometry$location_type
+ formatted_address <- x$results[[1]]$formatted_address
+ return(c(lat, lng, postal_code, location_type, formatted_address))
+ Sys.sleep(0.5)
+ } else {
+ return(c(NA,NA,NA,NA,NA))
+ }
+}
+```
+
+```{r}
+##Test with a single address
+
+# Use plyr to ggeocoding for a vector
+locations_df<-data.frame(lat=character(),
+                 lon=character(),
+                 postal_code=character(),
+                 location_type=character(),
+                 formatted=character(),
+                 stringsAsFactors=FALSE) 
+address <- c("37.78255696,-122.4163494", "37.80041, -122.4244", "37.72514, -122.4233", "37.77660, -122.5082")
+locations <- ldply(address, function(x) geoCode(x))
+locations_df = rbind(locations_df,locations)
+names(locations_df) <- c("lat", "lon", "postal_code", "location_type", "formatted")
+head(locations_df)
+print(geoCode())
+```
