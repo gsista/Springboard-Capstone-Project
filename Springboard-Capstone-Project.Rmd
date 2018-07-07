@@ -14,13 +14,23 @@ sf$Dates <- as.POSIXct(sf$Dates, format="%Y-%m-%d %H:%M:%S")
 str(sf)
 ```
 
+```{r}
+sf
+```
+
 1b. Filtering the San Francisco dataset to crimes that happened on and after January 1st, 2013
 ```{r}
 sf1 <- subset(sf, Dates >= "2013-01-01 00:00:00")
 sf1$LatLong <- NA
 sf1$LatLong <- paste(sf1$Y, sf1$X, sep = ", ")
-unique(sf1$LatLong)
 ```
+
+1c. Store the unique list of Address in a variable
+```{r}
+uniqueAddress<- unique(sf1$Address)
+uniqueAddress
+```
+
 
 ```{r}
 sf$DayOfWeek <- factor(sf$DayOfWeek, levels=c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
@@ -48,9 +58,77 @@ head(weather)
 3. Reading in Median House Prices by zipcode dataset
 
 ```{r}
-mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Zip_MedianListingPrice_AllHomes.csv")
+library(dplyr)
+mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/Zip_MedianListingPrice_AllHomes.csv")
 str(mhp)
-mhp
+sfmhp <- filter(mhp, City == 'San Francisco')
+sfmhp_zips <- c(sfmhp$RegionName)
+sfmhp_zips
 ```
 
-4. 
+4. Google API to convert Zip Code to Lat-Long
+
+```{r}
+library(RCurl)
+library(RJSONIO)
+library(plyr)
+```
+
+```{r}
+url <- function(address, return.call = "json") {
+ root <- "http://maps.google.com/maps/api/geocode/"
+ u <- paste(root, return.call, "?address=", address, sep = "")
+ return(URLencode(u))
+}
+```
+
+```{r}
+geoCode <- function(address,verbose=FALSE) {
+ if(verbose) cat(address,"\n")
+ u <- url(address)
+ print (u)
+ doc <- getURL(u)
+ x <- fromJSON(doc,simplify = FALSE)
+ if(x$status=="OK") {
+ lat <- x$results[[1]]$geometry$location$lat
+ lng <- x$results[[1]]$geometry$location$lng
+ location_type <- x$results[[1]]$geometry$location_type
+ formatted_address <- x$results[[1]]$formatted_address
+ zip_code <- address
+ return(c(zip_code, lat, lng, location_type, formatted_address))
+ Sys.sleep(0.5)
+ } else {
+ return(c(NA,NA,NA,NA,NA))
+ }
+}
+```
+
+```{r}
+##Test with a single address
+
+# Use plyr to ggeocoding for a vector
+locations_df <- data.frame(lat=character(),
+                 lon=character(), 
+                 location_type=character(),
+                 formatted=character(),
+                 stringsAsFactors=FALSE) 
+address <- c(sfmhp_zips)
+locations <- ldply(address, function(x) geoCode(x))
+locations_df = rbind(locations_df,locations)
+names(locations_df) <- c("zip_code", "lat", "lon", "location_type", "formatted")
+head(locations_df)
+
+smallset <- locations_df$zip_code[!is.na(locations_df$zip_code)]
+smallset
+
+bigset <- c(sfmhp$RegionName)
+bigset
+
+setdiff(bigset, smallset)
+
+# Writing Zip_Codes and Lat Long data to a file
+write.table(locations_df, file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t",
+            row.names = TRUE, col.names = NA)
+
+```
+
