@@ -25,10 +25,10 @@ sf1$LatLong <- NA
 sf1$LatLong <- paste(sf1$Y, sf1$X, sep = ", ")
 ```
 
-1c. Store the unique list of Address in a variable
+1c. Store the unique list of LatLong in a variable
 ```{r}
-uniqueAddress<- unique(sf1$Address)
-uniqueAddress
+uniqueLatLong <- unique(sf1$LatLong)
+uniqueLatLong
 ```
 
 
@@ -130,5 +130,44 @@ setdiff(bigset, smallset)
 write.table(locations_df, file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t",
             row.names = TRUE, col.names = NA)
 
+```
+
+5. Google API to find the distance in miles between two Lat-Longs
+
+```{r}
+url_latlong <- function(origins, destinations) {
+ root <- "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial"
+ u <- paste(root, "&origins=", origins, "&destinations=", destinations, sep = "")
+ return(URLencode(u))
+}
+```
+
+```{r}
+findapproxmatch <- function(origins, destinations,threshold, verbose=FALSE) {
+ if(verbose) cat(origins, destinations, threshold,"\n")
+ u <- url_latlong(origins, destinations, threshold)
+ print (u)
+ doc <- getURL(u)
+ x <- fromJSON(doc,simplify = FALSE)
+ print(x)
+}
+
+if(x$status=="OK") {
+  origins <- $origin_addresses[[1]]
+  destinations <- 
+#  return(c(zip_code, lat, lng, location_type, formatted_address))
+#  Sys.sleep(0.5)
+#  } else {
+#  return(c(NA,NA,NA,NA,NA))
+#  }
+}
+```
+
+```{r}
+threshold = "10"
+origins = "37.7929789,-122.4212424"
+destinations = "37.7225491,-122.4410618"
+var <- geoCode(origins, destinations)
+var$rows[[1]]$elements[[1]]$distance$text[1]
 ```
 
