@@ -16,6 +16,7 @@ str(sf)
 
 ```{r}
 sf
+# row(sf, as.factor = FALSE)
 ```
 
 1b. Filtering the San Francisco dataset to crimes that happened on and after January 1st, 2013
@@ -143,31 +144,33 @@ url_latlong <- function(origins, destinations) {
 ```
 
 ```{r}
-findapproxmatch <- function(origins, destinations,threshold, verbose=FALSE) {
- if(verbose) cat(origins, destinations, threshold,"\n")
- u <- url_latlong(origins, destinations, threshold)
+findapproxmatch <- function(origins, destinations, verbose=FALSE) {
+ if(verbose) cat(origins, destinations,"\n")
+ u <- url_latlong(origins, destinations  )
  print (u)
  doc <- getURL(u)
  x <- fromJSON(doc,simplify = FALSE)
  print(x)
-}
-
 if(x$status=="OK") {
-  origins <- $origin_addresses[[1]]
-  destinations <- 
-#  return(c(zip_code, lat, lng, location_type, formatted_address))
-#  Sys.sleep(0.5)
-#  } else {
-#  return(c(NA,NA,NA,NA,NA))
-#  }
+  origins <- x$origin_addresses[[1]]
+  destinations <- x$destination_addresses[[1]]
+ } else {
+ return(c(NA,NA,NA,NA,NA))
+ }
 }
+# findapproxmatch("37.7929789,-122.4212424", "37.7225491,-122.4410618", "10")
+# sapply(sf1, do.call(sf1))
 ```
 
 ```{r}
-threshold = "10"
-origins = "37.7929789,-122.4212424"
-destinations = "37.7225491,-122.4410618"
-var <- geoCode(origins, destinations)
-var$rows[[1]]$elements[[1]]$distance$text[1]
+sfmhp_latlong <- read.csv(file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t")
+sfmhp_latlong
+sfmhp_latlong$LatLong <- paste(sfmhp_latlong$lat, sfmhp_latlong$lon, sep =", ")
+sfmhp_latlong
+# threshold = "10"
+# origins = "37.7929789,-122.4212424"
+# destinations = do.call(sfmhp_zips, )
+# var <- findapproxmatch(origins, destinations)
+# var$rows[[1]]$elements[[1]]$distance$text[1]
 ```
 
