@@ -63,8 +63,10 @@ library(dplyr)
 mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/Zip_MedianListingPrice_AllHomes.csv")
 str(mhp)
 sfmhp <- filter(mhp, City == 'San Francisco')
-sfmhp_zips <- c(sfmhp$RegionName)
-sfmhp_zips
+# sfmhp_zips <- c(sfmhp$RegionName)
+# sfmhp_zips
+sfmhp_mhp_by_zip <- sfmhp[c("RegionName", "X2018.01")]
+sfmhp_mhp_by_zip
 ```
 
 4. Google API to convert Zip Code to Lat-Long
@@ -147,26 +149,36 @@ url_latlong <- function(origins, destinations) {
 findapproxmatch <- function(origins, destinations, verbose=FALSE) {
  if(verbose) cat(origins, destinations,"\n")
  u <- url_latlong(origins, destinations  )
- print (u)
+ # print (u)
  doc <- getURL(u)
- x <- fromJSON(doc,simplify = FALSE)
- print(x)
+x <- fromJSON(doc,simplify = FALSE)
+# print(x)
 if(x$status=="OK") {
-  origins <- x$origin_addresses[[1]]
-  destinations <- x$destination_addresses[[1]]
- } else {
- return(c(NA,NA,NA,NA,NA))
- }
+  distance <- x$rows[[1]]$elements[[1]]$distance$text
+#   origins <- x$origin_addresses[[1]]
+#   destinations <- x$destination_addresses[[1]]
+#  } else {
+#  return(c(NA,NA,NA,NA,NA))
 }
-# findapproxmatch("37.7929789,-122.4212424", "37.7225491,-122.4410618", "10")
-# sapply(sf1, do.call(sf1))
+print(distance)
+}
+findapproxmatch("37.7929789,-122.4212424", "37.7225491,-122.4410618")
+sapply(sf1, findapproxmatch(sf1$LatLong, sfmhp_latlong$LatLong))
 ```
+
+```{r}
+mhp_by_distance <- function() {
+  findapproxmatch()
+}
+```
+
 
 ```{r}
 sfmhp_latlong <- read.csv(file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t")
 sfmhp_latlong
 sfmhp_latlong$LatLong <- paste(sfmhp_latlong$lat, sfmhp_latlong$lon, sep =", ")
 sfmhp_latlong
+
 # threshold = "10"
 # origins = "37.7929789,-122.4212424"
 # destinations = do.call(sfmhp_zips, )
