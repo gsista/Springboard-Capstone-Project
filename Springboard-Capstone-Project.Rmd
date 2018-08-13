@@ -75,6 +75,8 @@ sfmhp_mhp_by_zip
 library(RCurl)
 library(RJSONIO)
 library(plyr)
+library(stringr)
+library(dplyr)
 ```
 
 ```{r}
@@ -155,15 +157,14 @@ x <- fromJSON(doc,simplify = FALSE)
 # print(x)
 if(x$status=="OK") {
   distance <- x$rows[[1]]$elements[[1]]$distance$text
-#   origins <- x$origin_addresses[[1]]
-#   destinations <- x$destination_addresses[[1]]
-#  } else {
-#  return(c(NA,NA,NA,NA,NA))
+  } else {
+    distance <- NA
+  }
+
+distnum = (unlist(str_split(string = distance, pattern = " "))[1])
+print(paste0("distnum:", distnum))
+return(as.numeric(distnum))
 }
-print(distance)
-}
-findapproxmatch("37.7929789,-122.4212424", "37.7225491,-122.4410618")
-sapply(sf1, findapproxmatch(sf1$LatLong, sfmhp_latlong$LatLong))
 ```
 
 ```{r}
@@ -178,11 +179,39 @@ sfmhp_latlong <- read.csv(file = "/Users/gsista/Desktop/Springboard/DataScience/
 sfmhp_latlong
 sfmhp_latlong$LatLong <- paste(sfmhp_latlong$lat, sfmhp_latlong$lon, sep =", ")
 sfmhp_latlong
+```
 
-# threshold = "10"
-# origins = "37.7929789,-122.4212424"
-# destinations = do.call(sfmhp_zips, )
-# var <- findapproxmatch(origins, destinations)
-# var$rows[[1]]$elements[[1]]$distance$text[1]
+```{r}
+sf1 #crime data
+```
+
+Combine Median House Price with Lat Long
+```{r}
+library(dplyr)
+sfmhp_latlong2 <- rename(sfmhp_latlong, zip = zip_code)
+sfmhp_mhp_by_zip2 <- rename(sfmhp_mhp_by_zip, zip = RegionName, median_house_price = X2018.01)
+#sfmhp_latlong2
+#sfmhp_mhp_by_zip2
+sfmhp_zip_latlong <- inner_join(sfmhp_mhp_by_zip2, sfmhp_latlong2, by = "zip")
+#sfmhp_zip_latlong
+```
+
+Function to get the house price based on lat long
+
+```{r}
+get_house_price <- function(LatLong) {
+  return(xsfmhp_zip_latlong[which(sfmhp_zip_latlong$LatLong == as.character(LatLong)), 'median_house_price'])
+}
+```
+
+```{r}
+VecFunction <- Vectorize(findapproxmatch)
+distmatrix <- outer(sf1$LatLong,sfmhp_zip_latlong$LatLong,VecFunction)
+colnames(distmatrix) = sfmhp_zip_latlong$LatLong
+rownames(distmatrix) = sf1$LatLong
+house_price_val <- rownames(distmatrix)[apply(distmatrix,2,which.min)]
+crime_val <- colnames(distmatrix)[apply(distmatrix,2,which.min)]
+dist_val <- apply(distmatrix,2,min)
+combineddf <- data.frame(houseprice_val,crime_val,dist_val)
 ```
 
