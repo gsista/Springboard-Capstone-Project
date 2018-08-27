@@ -63,8 +63,8 @@ library(dplyr)
 mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/Zip_MedianListingPrice_AllHomes.csv")
 str(mhp)
 sfmhp <- filter(mhp, City == 'San Francisco')
-# sfmhp_zips <- c(sfmhp$RegionName)
-# sfmhp_zips
+sfmhp_zips <- c(sfmhp$RegionName)
+sfmhp_zips
 sfmhp_mhp_by_zip <- sfmhp[c("RegionName", "X2018.01")]
 sfmhp_mhp_by_zip
 ```
@@ -205,6 +205,12 @@ get_house_price <- function(LatLong) {
 ```
 
 ```{r}
+sfmhp_zip_latlong = head(sfmhp_zip_latlong)
+print(sfmhp_zip_latlong)
+```
+
+
+```{r}
 VecFunction <- Vectorize(findapproxmatch)
 distmatrix <- outer(sf1$LatLong,sfmhp_zip_latlong$LatLong,VecFunction)
 colnames(distmatrix) = sfmhp_zip_latlong$LatLong
@@ -212,6 +218,9 @@ rownames(distmatrix) = sf1$LatLong
 house_price_val <- rownames(distmatrix)[apply(distmatrix,2,which.min)]
 crime_val <- colnames(distmatrix)[apply(distmatrix,2,which.min)]
 dist_val <- apply(distmatrix,2,min)
+Sys.sleep(60)
 combineddf <- data.frame(houseprice_val,crime_val,dist_val)
+write.table(combineddf, file = "/Users/gsista/Desktop/Springboard/DataScience/combineddata.tsv", sep = "\t",
+            row.names = TRUE, col.names = NA)
 ```
 
