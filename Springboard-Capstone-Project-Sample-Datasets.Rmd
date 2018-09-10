@@ -1,0 +1,202 @@
+---
+title: "Springboard Capstone Project - Sample Datasets"
+author: Gautham Sista
+output: html_notebook
+---
+
+This notebook shows the analysis performed as part of my Springboard Capstone Project for the Introduction to Data Science course. 
+
+Run all the libraries before running the rest of the scripts
+
+```{r}
+library(RCurl)
+library(RJSONIO)
+library(plyr)
+library(stringr)
+library(dplyr)
+```
+
+1a. Reading in the San Francisco Crime dataset sample
+
+```{r}
+crime_data <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Data/sf_crime_sample.tsv", sep = "\t")
+crime_data
+```
+
+2. Reading the SF weather dataset
+
+```{r}
+weather <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/weather.csv")
+head(weather)
+```
+
+3. Reading in Median House Prices by zipcode dataset
+
+```{r}
+mhp <- read.csv("/Users/gsista/Desktop/Springboard/DataScience/Springboard-Capstone-Project/Data/Zip_MedianListingPrice_AllHomes.csv")
+str(mhp)
+sfmhp <- filter(mhp, City == 'San Francisco')
+sfmhp_zips <- c(sfmhp$RegionName)
+sfmhp_zips
+sfmhp_mhp_by_zip <- sfmhp[c("RegionName", "X2018.01")]
+sfmhp_mhp_by_zip
+```
+
+4. Google API to convert Zip Code to Lat-Long
+
+```{r}
+url <- function(address, return.call = "json") {
+ root <- "http://maps.google.com/maps/api/geocode/"
+ u <- paste(root, return.call, "?address=", address, sep = "")
+ return(URLencode(u))
+}
+```
+
+```{r}
+geoCode <- function(address,verbose=FALSE) {
+ if(verbose) cat(address,"\n")
+ u <- url(address)
+ print (u)
+ doc <- getURL(u)
+ x <- fromJSON(doc,simplify = FALSE)
+ if(x$status=="OK") {
+ lat <- x$results[[1]]$geometry$location$lat
+ lng <- x$results[[1]]$geometry$location$lng
+ location_type <- x$results[[1]]$geometry$location_type
+ formatted_address <- x$results[[1]]$formatted_address
+ zip_code <- address
+ return(c(zip_code, lat, lng, location_type, formatted_address))
+ Sys.sleep(0.5)
+ } else {
+ return(c(NA,NA,NA,NA,NA))
+ }
+}
+```
+
+```{r}
+##Test with a single address
+
+# Use plyr to ggeocoding for a vector
+locations_df <- data.frame(lat=character(),
+                 lon=character(), 
+                 location_type=character(),
+                 formatted=character(),
+                 stringsAsFactors=FALSE) 
+address <- c(sfmhp_zips)
+locations <- ldply(address, function(x) geoCode(x))
+locations_df = rbind(locations_df,locations)
+names(locations_df) <- c("zip_code", "lat", "lon", "location_type", "formatted")
+head(locations_df)
+
+smallset <- locations_df$zip_code[!is.na(locations_df$zip_code)]
+smallset
+
+bigset <- c(sfmhp$RegionName)
+bigset
+
+setdiff(bigset, smallset)
+
+# Writing Zip_Codes and Lat Long data to a file
+write.table(locations_df, file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t",
+            row.names = TRUE, col.names = NA)
+
+```
+
+5. Google API to find the distance in miles between two Lat-Longs
+
+```{r}
+url_latlong <- function(origins, destinations) {
+ root <- "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial"
+ u <- paste(root, "&origins=", origins, "&destinations=", destinations, sep = "")
+ return(URLencode(u))
+}
+```
+
+```{r}
+findapproxmatch <- function(origins, destinations, verbose=FALSE) {
+ if(verbose) cat(origins, destinations,"\n")
+ u <- url_latlong(origins, destinations  )
+ # print (u)
+ doc <- getURL(u)
+x <- fromJSON(doc,simplify = FALSE)
+# print(x)
+if(x$status=="OK") {
+  distance <- x$rows[[1]]$elements[[1]]$distance$text
+  } else {
+    distance <- NA
+  }
+
+distnum = (unlist(str_split(string = distance, pattern = " "))[1])
+print(paste0("distnum:", distnum))
+return(as.numeric(distnum))
+}
+```
+
+```{r}
+mhp_by_distance <- function() {
+  findapproxmatch()
+}
+```
+
+
+```{r}
+sfmhp_latlong <- read.csv(file = "/Users/gsista/Desktop/Springboard/DataScience/GoogleAPILocation.tsv", sep = "\t")
+sfmhp_latlong
+sfmhp_latlong$LatLong <- paste(sfmhp_latlong$lat, sfmhp_latlong$lon, sep =", ")
+sfmhp_latlong
+```
+
+Combine Median House Price with Lat Long
+```{r}
+library(dplyr)
+colnames(sfmhp_latlong) <- c("X", "zip", "lat", "lon", "location_type", "formatted", "LatLong")
+colnames(sfmhp_mhp_by_zip) <- c("zip", "median_house_price")
+sfmhp_zip_latlong <- inner_join(sfmhp_mhp_by_zip, sfmhp_latlong, by = "zip")
+sfmhp_zip_latlong
+```
+
+Function to get the house price based on lat long
+
+```{r}
+get_house_price <- function(LatLong) {
+  return(sfmhp_zip_latlong[which(sfmhp_zip_latlong$LatLong == as.character(LatLong)), 'median_house_price'])
+}
+```
+
+```{r}
+sfmhp_zip_latlong = head(sfmhp_zip_latlong)
+print(sfmhp_zip_latlong)
+```
+
+
+```{r}
+VecFunction <- Vectorize(findapproxmatch)
+distmatrix <- outer(sf1$LatLong,sfmhp_zip_latlong$LatLong,VecFunction)
+colnames(distmatrix) = sfmhp_zip_latlong$LatLong
+rownames(distmatrix) = sf1$LatLong
+house_price_val <- rownames(distmatrix)[apply(distmatrix,2,which.min)]
+crime_val <- colnames(distmatrix)[apply(distmatrix,2,which.min)]
+dist_val <- apply(distmatrix,2,min)
+Sys.sleep(60)
+Sys.time()
+combineddf <- data.frame(houseprice_val,crime_val,dist_val)
+write.csv(combineddf, file = "/Users/gsista/Desktop/Springboard/DataScience/combineddata.csv")
+```
+
+Charts about crimes by weekday
+
+```{r}
+sf$DayOfWeek <- factor(sf$DayOfWeek, levels=c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+library(ggplot2)
+ggplot(sf, aes(x = DayOfWeek)) +
+  geom_bar() +
+  geom_text(stat='count',aes(label=..count..),vjust=-1)
+```
+
+```{r}
+sf$DayOfWeek <- factor(sf$DayOfWeek, levels=c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+ggplot(sf, aes(x = Category, fill = DayOfWeek)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
