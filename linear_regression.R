@@ -137,14 +137,15 @@ states.info
 str(states.data)
 
 # summary of energy and metro columns, all rows
-sts.energy.metro <- subset(states.data, select = c("energy", "metro", "college"))
+sts.energy.metro <- subset(states.data, select = c("energy", "metro"))
 summary(sts.energy.metro)
 # correlation between energy and metro
-cor(sts.energy.metro)
+#cor(sts.energy.metro)
+cor(sts.energy.metro, use = "complete.obs")
 plot(sts.energy.metro)
 
 ##   2. Print and interpret the model `summary'
-energy_mod <- lm(energy ~ metro + college, #Linear Regression Model
+energy_mod <- lm(energy ~ metro, #Linear Regression Model
                  data=states.data)
 summary(energy_mod)
 
@@ -154,6 +155,24 @@ plot(energy_mod)
 ##   Select one or more additional predictors to add to your model and
 ##   repeat steps 1-3. Is this model significantly better than the model
 ##   with /metro/ as the only predictor?
+
+#Adding additional predictors to the model
+# summary of energy and metro columns, all rows
+sts.energy.metro.college.income <- subset(states.data, select = c("energy", "metro", "college", "income"))
+summary(sts.energy.metro.college.income)
+# correlation between energy and metro
+#cor(sts.energy.metro)
+cor(sts.energy.metro.college.income, use = "complete.obs")
+plot(sts.energy.metro.college.income)
+
+# Print and interpret the model `summary'
+energy_coll_inc_mod <- lm(energy ~ metro + college + income, #Linear Regression Model
+                 data=states.data)
+summary(energy_coll_inc_mod)
+
+# plot the model to look for deviations from modeling assumptions
+plot(energy_coll_inc_mod)
+
 
 ## Interactions and factors
 ## ══════════════════════════
@@ -167,10 +186,10 @@ plot(energy_mod)
 ##   depend on the median income in the state?
 
   #Add the interaction to the model
-sat.expense.by.percent <- lm(csat ~ expense*income,
+energy.metro.by.college <- lm(energy ~ metro*college,
                              data=states.data) 
 #Show the results
-  coef(summary(sat.expense.by.percent)) # show regression coefficients table
+  coef(summary(energy.metro.by.college)) # show regression coefficients table
 
 ## Regression with categorical predictors
 ## ──────────────────────────────────────────
@@ -183,11 +202,11 @@ sat.expense.by.percent <- lm(csat ~ expense*income,
 str(states.data$region)
 states.data$region <- factor(states.data$region)
 #Add region to the model
-sat.region <- lm(csat ~ region,
+energy.region <- lm(energy ~ region,
                  data=states.data) 
 #Show the results
-coef(summary(sat.region)) # show regression coefficients table
-anova(sat.region) # show ANOVA table
+coef(summary(energy.region)) # show regression coefficients table
+anova(energy.region) # show ANOVA table
 
 ##   Again, *make sure to tell R which variables are categorical by
 ##   converting them to factors!*
@@ -203,10 +222,10 @@ anova(sat.region) # show ANOVA table
 # print default contrasts
 contrasts(states.data$region)
 # change the reference group
-coef(summary(lm(csat ~ C(region, base=4),
+coef(summary(lm(energy ~ C(region, base=4),
                 data=states.data)))
 # change the coding scheme
-coef(summary(lm(csat ~ C(region, contr.helmert),
+coef(summary(lm(energy ~ C(region, contr.helmert),
                 data=states.data)))
 
 ##   See also `?contrasts', `?contr.treatment', and `?relevel'.
